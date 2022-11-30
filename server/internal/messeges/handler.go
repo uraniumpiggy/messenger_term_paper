@@ -19,5 +19,7 @@ func (h *handler) Register(router *mux.Router) {
 }
 
 func (h *handler) ServeChat(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Ws hi"))
+	params := mux.Vars(r)
+	id := params["chatId"]
+	w.Write([]byte("Ws hi " + id))
 }
