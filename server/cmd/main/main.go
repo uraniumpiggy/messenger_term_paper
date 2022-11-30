@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"messenger/internal/messeges"
-	"messenger/internal/middleware"
 	"messenger/internal/users"
 	"messenger/internal/users/db"
 	"messenger/pkg/client/postgres"
@@ -15,8 +14,6 @@ import (
 
 func main() {
 	router := mux.NewRouter()
-
-	mid := &middleware.Middleware{}
 
 	dbClient, err := postgres.NewClient(
 		context.Background(),
@@ -35,7 +32,7 @@ func main() {
 
 	userService := users.NewService(userStorage)
 
-	userHandler := users.NewHandler(userService, mid)
+	userHandler := users.NewHandler(userService)
 
 	userHandler.Register(router)
 

@@ -32,29 +32,51 @@ func (s *Service) RegisterUser(ctx context.Context, data *UserRegisterRequest) e
 	return nil
 }
 
-func (s *Service) AuthUser(ctx context.Context, data *UserLoginRequest) (string, error) {
+func (s *Service) AuthUser(ctx context.Context, data *UserLoginRequest) (*UserWithToken, error) {
 	passHash, err := s.storage.AuthUser(ctx, data)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(passHash), []byte(data.Password))
 	if err != nil {
-		return "", fmt.Errorf("Incorrect credentials")
+		return nil, fmt.Errorf("Incorrect credentials")
 	}
 
-	token, err := s.generateJWT("username")
+	uwt, err := s.storage.GetUserInfo(ctx, data)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return token, nil
 
+	userWithToken := &UserWithToken{}
+
+	userWithToken.UserID = uwt.UserID
+	userWithToken.Username = uwt.Username
+	userWithToken.ChatIDs = uwt.ChatIDs
+	userWithToken.ChatNames = uwt.ChatNames
+
+	token, err := s.generateJWT(userWithToken.Username)
+	if err != nil {
+		return nil, err
+	}
+
+	userWithToken.Token = token
+
+	return userWithToken, nil
+}
+
+func (s *Service) CreateChat(ctx context.Context, data *CreateChatRequest) error {
+	if len(data.ChatMemberNames) == 0 {
+		return fmt.Errorf("Chat must contain at least two members")
+	}
+	err := s.storage.CreateChat(ctx, data)
+	return err
 }
 
 func (s *Service) generateJWT(username string) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
-	claims["exp"] = time.Now().Add(10 * time.Minute)
+	claims["exp"] = time.Now().Add(3000 * time.Second).Unix()
 	claims["authorized"] = true
 	claims["user"] = username
 
@@ -64,4 +86,5 @@ func (s *Service) generateJWT(username string) (string, error) {
 	}
 
 	return tokenString, nil
+
 }

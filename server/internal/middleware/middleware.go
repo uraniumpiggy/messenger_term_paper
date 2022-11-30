@@ -3,28 +3,45 @@ package middleware
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/golang-jwt/jwt"
 )
 
 type appErrorHandler func(w http.ResponseWriter, r *http.Request) error
 
-type Middleware struct {
-}
-
-func (m *Middleware) AuthMiddleware(h appErrorHandler) appErrorHandler {
+func AuthMiddleware(h appErrorHandler) appErrorHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		fmt.Println("Auth...")
-		h(w, r)
+		if r.Header["Token"] == nil {
+			return fmt.Errorf("Unauth")
+		}
+
+		token, err := jwt.Parse(r.Header["Token"][0], func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("There was an error in parsing")
+			}
+			return []byte("SecretYouShouldHide"), nil
+		})
+
+		if err != nil {
+			return err
+		}
+
+		if token.Valid {
+			h(w, r)
+		} else {
+			return fmt.Errorf("unauth")
+		}
+
 		return nil
 	}
 }
 
-func (m *Middleware) ErrorMiddleware(h appErrorHandler) http.HandlerFunc {
+func ErrorMiddleware(h appErrorHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Error handling...")
 		h(w, r)
 	}
 }
 
-func (m *Middleware) WsMiddleware() {
+func WsMiddleware() {
 
 }

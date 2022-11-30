@@ -12,20 +12,18 @@ import (
 
 type handler struct {
 	service *Service
-	mid     *middleware.Middleware
 }
 
-func NewHandler(service *Service, mid *middleware.Middleware) handlers.Handler {
+func NewHandler(service *Service) handlers.Handler {
 	return &handler{
 		service: service,
-		mid:     mid,
 	}
 }
 
 func (h *handler) Register(router *mux.Router) {
-	router.HandleFunc("/register", h.mid.ErrorMiddleware(h.RegisterUser)).Methods("POST")
-	router.HandleFunc("/login", h.mid.ErrorMiddleware(h.AuthUser)).Methods("GET")
-	router.HandleFunc("/chats/create", h.mid.ErrorMiddleware(h.mid.AuthMiddleware(h.CreateChat))).Methods("POST")
+	router.HandleFunc("/register", middleware.ErrorMiddleware(h.RegisterUser)).Methods("POST")
+	router.HandleFunc("/login", middleware.ErrorMiddleware(h.AuthUser)).Methods("GET")
+	router.HandleFunc("/chats/create", middleware.ErrorMiddleware(middleware.AuthMiddleware(h.CreateChat))).Methods("POST")
 }
 
 func (h *handler) RegisterUser(w http.ResponseWriter, r *http.Request) error {
@@ -51,10 +49,21 @@ func (h *handler) AuthUser(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	w.Write([]byte(s))
+
+	err = json.NewEncoder(w).Encode(s)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (h *handler) CreateChat(w http.ResponseWriter, r *http.Request) error {
+	var data CreateChatRequest
+	err := json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		return err
+	}
+
+	err = h.service.CreateChat(context.Background(), &data)
 	return nil
 }
