@@ -1,0 +1,6 @@
+time="2022-12-01T23:31:44+03:00" level=info msg="Create router" func="main.main()" file="main.go:22"
+time="2022-12-01T23:31:44+03:00" level=info msg="Read application configuration" func="messenger/internal/config.GetConfig.func1()" file="config.go:31"
+time="2022-12-01T23:31:44+03:00" level=info msg="Connected to database" func="main.main()" file="main.go:38"
+time="2022-12-01T23:31:44+03:00" level=info msg="User handler ready" func="main.main()" file="main.go:45"
+time="2022-12-01T23:31:44+03:00" level=info msg="Message handler ready" func="main.main()" file="main.go:52"
+time="2022-12-01T23:31:44+03:00" level=info msg="Server started..." func="main.main()" file="main.go:54"

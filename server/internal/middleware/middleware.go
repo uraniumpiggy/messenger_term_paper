@@ -52,6 +52,7 @@ func AuthMiddleware(h authHandler) appErrorHandler {
 
 func ErrorMiddleware(h appErrorHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		var appError *apperror.AppError
 		err := h(w, r)
 		if err != nil {

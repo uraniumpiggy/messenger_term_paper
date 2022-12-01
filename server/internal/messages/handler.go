@@ -42,7 +42,6 @@ func (h *handler) GetChatHistory(w http.ResponseWriter, r *http.Request, userId 
 	if err != nil {
 		return err
 	}
-	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(msgs)
 	return nil
 }

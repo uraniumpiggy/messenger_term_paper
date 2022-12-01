@@ -43,7 +43,6 @@ func (h *handler) RegisterUser(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (h *handler) AuthUser(w http.ResponseWriter, r *http.Request) error {
-	w.Header().Set("Content-Type", "application/json")
 	var credentials UserLoginRequest
 	err := json.NewDecoder(r.Body).Decode(&credentials)
 	if err != nil {
@@ -72,7 +71,6 @@ func (h *handler) CreateChat(w http.ResponseWriter, r *http.Request, userId uint
 }
 
 func (h *handler) GetAllUsernames(w http.ResponseWriter, r *http.Request, userId uint32) error {
-	w.Header().Set("Content-Type", "application/json")
 	prefix := r.URL.Query().Get("prefix")
 	if prefix == "" {
 		return apperror.ErrBadRequest
@@ -89,7 +87,6 @@ func (h *handler) GetAllUsernames(w http.ResponseWriter, r *http.Request, userId
 }
 
 func (h *handler) GetUserChats(w http.ResponseWriter, r *http.Request, userId uint32) error {
-	w.Header().Set("Content-Type", "application/json")
 	chats, err := h.service.GetUserChats(context.Background(), userId)
 	if err != nil {
 		return apperror.ErrInternalError

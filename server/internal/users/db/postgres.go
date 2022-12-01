@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"messenger/internal/apperror"
 	"messenger/internal/users"
 )
 
@@ -21,7 +22,7 @@ func (d *db) RegisterUser(ctx context.Context, data *users.UserRegisterRequest) 
 	var id int
 	err := d.QueryRowContext(ctx, `select id from users where login = $1`, data.Login).Scan(&id)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return err
+		return apperror.ErrInternalError
 	}
 	if id != 0 {
 		return fmt.Errorf("User already exists")
@@ -31,11 +32,11 @@ func (d *db) RegisterUser(ctx context.Context, data *users.UserRegisterRequest) 
 		if err.Error() == `pq: duplicate key value violates unique constraint "users_username_key"` {
 			return fmt.Errorf("This username already exist")
 		}
-		return err
+		return apperror.ErrInternalError
 	}
 	affected, err := res.RowsAffected()
 	if affected == 0 || err != nil {
-		return fmt.Errorf("err in db")
+		return apperror.ErrInternalError
 	}
 	return nil
 
@@ -48,7 +49,7 @@ func (d *db) AuthUser(ctx context.Context, data *users.UserLoginRequest) (string
 		if errors.Is(err, sql.ErrNoRows) {
 			return "", fmt.Errorf("User not found")
 		}
-		return "", err
+		return "", apperror.ErrNotFound
 	}
 	return password, nil
 }
@@ -57,7 +58,7 @@ func (d *db) GetUserInfo(ctx context.Context, data *users.UserLoginRequest) (*us
 	res := &users.UserInfo{}
 	err := d.QueryRowContext(ctx, `select id, username from users where login = $1`, data.Login).Scan(&res.UserID, &res.Username)
 	if err != nil {
-		return nil, err
+		return nil, apperror.ErrNotFound
 	}
 
 	res.ChatIDs = make([]uint32, 0)

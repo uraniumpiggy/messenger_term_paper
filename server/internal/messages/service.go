@@ -2,7 +2,7 @@ package messages
 
 import (
 	"context"
-	"fmt"
+	"messenger/internal/apperror"
 	"strconv"
 	"sync"
 
@@ -28,7 +28,6 @@ func (s *Service) SendMessageToChat(ctx context.Context, conn *websocket.Conn, c
 	s.mutex.Lock()
 	s.connections[chatId] = append(s.connections[chatId], conn)
 	s.mutex.Unlock()
-	fmt.Println(s.connections)
 	defer func() {
 		s.mutex.Lock()
 		for idx, val := range s.connections[chatId] {
@@ -40,30 +39,24 @@ func (s *Service) SendMessageToChat(ctx context.Context, conn *websocket.Conn, c
 		if len(s.connections[chatId]) == 0 {
 			delete(s.connections, chatId)
 		}
-		fmt.Println(s.connections)
 		s.mutex.Unlock()
 	}()
 	go func() {
 		for {
-			t, message, err := conn.ReadMessage()
+			_, message, err := conn.ReadMessage()
 			if err != nil {
-				fmt.Printf("err 1: %s", err)
 				disconnect <- struct{}{}
 				break
-			}
-			for _, c := range s.connections[chatId] {
-				if c != conn {
-					err = c.WriteMessage(t, message)
-					if err != nil {
-						fmt.Printf("err 2: %s", err)
-						break
-					}
-				}
 			}
 			msg := &Message{
 				ChatId: chatId,
 				UserId: userId,
 				Body:   string(message),
+			}
+			for _, c := range s.connections[chatId] {
+				if c != conn {
+					c.WriteJSON(msg)
+				}
 			}
 			s.storage.SaveMessage(ctx, msg)
 		}
@@ -82,11 +75,11 @@ func (s *Service) GetMessages(ctx context.Context, page, limit, chatId string) (
 	nChatId, err3 := strconv.ParseUint(chatId, 10, 32)
 
 	if err1 != nil || err2 != nil || err3 != nil {
-		return nil, fmt.Errorf("Error with string convertion %s, %s, %s", err1, err2, err3)
+		return nil, apperror.ErrBadRequest
 	}
 
 	if nPage < 0 || nLimit < 0 || nChatId < 0 {
-		return nil, fmt.Errorf("Negative number(s)")
+		return nil, apperror.ErrBadRequest
 	}
 
 	offset := (nPage - 1) * nLimit
