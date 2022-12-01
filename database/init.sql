@@ -19,12 +19,12 @@ CREATE TABLE IF NOT EXISTS users_chats (
     PRIMARY KEY (user_id, chat_id)
 );
 
-CREATE TABLE IF NOT EXISTS messeges (
+CREATE TABLE IF NOT EXISTS messages (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL,
     chat_id INTEGER NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    body NCHAR NOT NULL,
+    body VARCHAR(2000) NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (chat_id) REFERENCES chats(id)
 );

@@ -57,13 +57,13 @@ func (h *handler) AuthUser(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func (h *handler) CreateChat(w http.ResponseWriter, r *http.Request) error {
+func (h *handler) CreateChat(w http.ResponseWriter, r *http.Request, userId uint32) error {
 	var data CreateChatRequest
 	err := json.NewDecoder(r.Body).Decode(&data)
 	if err != nil {
 		return err
 	}
 
-	err = h.service.CreateChat(context.Background(), &data)
+	err = h.service.CreateChat(context.Background(), &data, userId)
 	return nil
 }

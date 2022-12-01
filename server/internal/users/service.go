@@ -55,7 +55,7 @@ func (s *Service) AuthUser(ctx context.Context, data *UserLoginRequest) (*UserWi
 	userWithToken.ChatIDs = uwt.ChatIDs
 	userWithToken.ChatNames = uwt.ChatNames
 
-	token, err := s.generateJWT(userWithToken.Username)
+	token, err := s.generateJWT(userWithToken.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -65,20 +65,20 @@ func (s *Service) AuthUser(ctx context.Context, data *UserLoginRequest) (*UserWi
 	return userWithToken, nil
 }
 
-func (s *Service) CreateChat(ctx context.Context, data *CreateChatRequest) error {
+func (s *Service) CreateChat(ctx context.Context, data *CreateChatRequest, userId uint32) error {
 	if len(data.ChatMemberNames) == 0 {
 		return fmt.Errorf("Chat must contain at least two members")
 	}
-	err := s.storage.CreateChat(ctx, data)
+	err := s.storage.CreateChat(ctx, data, userId)
 	return err
 }
 
-func (s *Service) generateJWT(username string) (string, error) {
+func (s *Service) generateJWT(userId uint32) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
-	claims["exp"] = time.Now().Add(3000 * time.Second).Unix()
+	claims["exp"] = time.Now().Add(10 * time.Hour).Unix()
 	claims["authorized"] = true
-	claims["user"] = username
+	claims["user_id"] = userId
 
 	tokenString, err := token.SignedString(sampleSecretKey)
 	if err != nil {

@@ -1,6 +1,15 @@
 package apperror
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
+
+var (
+	ErrNotFound      = NewAppError(nil, "not found", "BS-000001")
+	ErrBadRequest    = NewAppError(nil, "bad request", "BS-000002")
+	ErrInternalError = NewAppError(nil, "internal error", "BS-000000")
+	ErrUnauthorized  = NewAppError(nil, "unauthorized", "BS-000003")
+)
 
 type AppError struct {
 	Err     error  `json:"-"`

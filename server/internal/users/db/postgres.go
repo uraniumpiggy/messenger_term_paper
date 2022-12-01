@@ -82,7 +82,7 @@ func (d *db) GetUserInfo(ctx context.Context, data *users.UserLoginRequest) (*us
 	return res, nil
 }
 
-func (d *db) CreateChat(ctx context.Context, data *users.CreateChatRequest) error {
+func (d *db) CreateChat(ctx context.Context, data *users.CreateChatRequest, userId uint32) error {
 	ids := make([]uint32, 0)
 	var members bytes.Buffer
 	for i, val := range data.ChatMemberNames {
@@ -123,7 +123,7 @@ func (d *db) CreateChat(ctx context.Context, data *users.CreateChatRequest) erro
 	for _, val := range ids {
 		buffer.WriteString(fmt.Sprintf("(%d, %d),", val, chatId))
 	}
-	buffer.WriteString(fmt.Sprintf("(%d, %d)", data.UserID, chatId))
+	buffer.WriteString(fmt.Sprintf("(%d, %d)", userId, chatId))
 
 	_, err = t.ExecContext(ctx, buffer.String())
 	if err != nil {

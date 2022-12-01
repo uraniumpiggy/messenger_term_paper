@@ -1,10 +1,12 @@
 package users
 
-import "context"
+import (
+	"context"
+)
 
 type Storage interface {
 	RegisterUser(context.Context, *UserRegisterRequest) error
 	AuthUser(context.Context, *UserLoginRequest) (string, error)
 	GetUserInfo(context.Context, *UserLoginRequest) (*UserInfo, error)
-	CreateChat(context.Context, *CreateChatRequest) error
+	CreateChat(context.Context, *CreateChatRequest, uint32) error
 }

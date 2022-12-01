@@ -3,7 +3,10 @@ package main
 import (
 	"context"
 	"log"
-	"messenger/internal/messeges"
+	"messenger/internal/messages"
+	messagesdb "messenger/internal/messages/message_db"
+
+	// "messenger/internal/messages/messagesdb"
 	"messenger/internal/users"
 	"messenger/internal/users/db"
 	"messenger/pkg/client/postgres"
@@ -29,14 +32,13 @@ func main() {
 	log.Println("Connected to database")
 
 	userStorage := db.NewStorage(dbClient)
-
 	userService := users.NewService(userStorage)
-
 	userHandler := users.NewHandler(userService)
-
 	userHandler.Register(router)
 
-	chatHandler := messeges.NewHandler()
+	chatStorage := messagesdb.NewStorage(dbClient)
+	chatService := messages.NewService(chatStorage)
+	chatHandler := messages.NewHandler(chatService)
 	chatHandler.Register(router)
 
 	http.ListenAndServe(":8080", router)

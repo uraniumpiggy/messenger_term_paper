@@ -15,7 +15,6 @@ type UserRegisterRequest struct {
 }
 
 type CreateChatRequest struct {
-	UserID          uint32   `json:"user_id"`
 	ChatMemberNames []string `json:"chat_member_names"`
 	ChatName        string   `json:"name"`
 }
