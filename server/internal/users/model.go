@@ -1,6 +1,13 @@
 package users
 
-type User struct {
+type ChatInfo struct {
+	ChatId       uint32   `json:"chat_id"`
+	ChatName     string   `json:"chat_name"`
+	MemeberNames []string `json:"memeber_names"`
+}
+
+type UsernameResponse struct {
+	Usernames []string `json:"usernames"`
 }
 
 type UserLoginRequest struct {

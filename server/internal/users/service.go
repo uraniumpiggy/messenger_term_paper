@@ -73,6 +73,23 @@ func (s *Service) CreateChat(ctx context.Context, data *CreateChatRequest, userI
 	return err
 }
 
+func (s *Service) GetUserChats(ctx context.Context, userId uint32) ([]*ChatInfo, error) {
+	ci, err := s.storage.GetUserChats(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	return ci, nil
+}
+
+func (s *Service) GetAllUsernames(ctx context.Context, prefix string) (*UsernameResponse, error) {
+	usernames, err := s.storage.GetAllUsernames(ctx, prefix)
+	if err != nil {
+		return nil, err
+	}
+	res := &UsernameResponse{Usernames: usernames}
+	return res, nil
+}
+
 func (s *Service) generateJWT(userId uint32) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
@@ -86,5 +103,4 @@ func (s *Service) generateJWT(userId uint32) (string, error) {
 	}
 
 	return tokenString, nil
-
 }

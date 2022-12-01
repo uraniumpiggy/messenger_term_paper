@@ -135,3 +135,52 @@ func (d *db) CreateChat(ctx context.Context, data *users.CreateChatRequest, user
 
 	return nil
 }
+
+func (d *db) GetAllUsernames(ctx context.Context, prefix string) ([]string, error) {
+	res := make([]string, 0)
+	r, err := d.QueryContext(ctx, `select username from users where username like $1`, "%"+prefix+"%")
+	defer r.Close()
+	if err != nil {
+		return nil, err
+	}
+	for r.Next() {
+		var name string
+		if err := r.Scan(&name); err != nil {
+			return nil, err
+		}
+		res = append(res, name)
+	}
+	return res, nil
+}
+
+func (d *db) GetUserChats(ctx context.Context, userId uint32) ([]*users.ChatInfo, error) {
+	res := make([]*users.ChatInfo, 0)
+	r, err := d.QueryContext(ctx, `select c.id, c.chat_name from chats as c left join users_chats as uc on uc.user_id = $1 and c.id = uc.chat_id`, userId)
+	defer r.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	for r.Next() {
+		ci := &users.ChatInfo{}
+		if err := r.Scan(&ci.ChatId, &ci.ChatName); err != nil {
+			return nil, err
+		}
+		ci.MemeberNames = make([]string, 0)
+		rows, err := d.QueryContext(ctx, `select u.username from users_chats as uc, users as u where uc.chat_id = $1 and uc.user_id = u.id`, ci.ChatId)
+		defer rows.Close()
+		if err != nil {
+			return nil, err
+		}
+		for rows.Next() {
+			var username string
+			if err := rows.Scan(&username); err != nil {
+				return nil, err
+			}
+			ci.MemeberNames = append(ci.MemeberNames, username)
+		}
+		res = append(res, ci)
+	}
+
+	return res, nil
+}

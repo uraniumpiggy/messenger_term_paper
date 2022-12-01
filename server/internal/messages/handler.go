@@ -3,7 +3,7 @@ package messages
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"messenger/internal/apperror"
 	"messenger/internal/handlers"
 	"messenger/internal/middleware"
 	"net/http"
@@ -22,7 +22,7 @@ func NewHandler(service *Service) handlers.Handler {
 
 func (h *handler) Register(router *mux.Router) {
 	router.HandleFunc("/ws/{chatId}", middleware.ErrorMiddleware(middleware.AuthMiddleware(middleware.WsMiddleware(h.ServeChat)))).Methods("GET")
-	router.HandleFunc("/chats/{chatId}", middleware.ErrorMiddleware(middleware.AuthMiddleware(h.GetChatHistory))).Methods("GET")
+	router.HandleFunc("/chats/{chatId}/history", middleware.ErrorMiddleware(middleware.AuthMiddleware(h.GetChatHistory))).Methods("GET")
 }
 
 func (h *handler) ServeChat(conn *websocket.Conn, chatId, userId uint32) error {
@@ -36,12 +36,13 @@ func (h *handler) GetChatHistory(w http.ResponseWriter, r *http.Request, userId 
 	params := mux.Vars(r)
 	chatId := params["chatId"]
 	if page == "" || limit == "" || chatId == "" {
-		return fmt.Errorf("Bad request")
+		return apperror.ErrBadRequest
 	}
 	msgs, err := h.service.GetMessages(context.Background(), page, limit, chatId)
 	if err != nil {
 		return err
 	}
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(msgs)
 	return nil
 }

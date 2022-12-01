@@ -29,7 +29,7 @@ func (d *db) GetMessages(ctx context.Context, limit, offset, chat_id uint32) ([]
 
 	for rows.Next() {
 		message := &messages.Message{}
-		if err := rows.Scan(message.UserId, message.ChatId, message.Body, message.CreatedAt); err != nil {
+		if err := rows.Scan(&message.UserId, &message.ChatId, &message.Body, &message.CreatedAt); err != nil {
 			return nil, err
 		}
 		res = append(res, message)
