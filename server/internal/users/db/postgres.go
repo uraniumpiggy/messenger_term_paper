@@ -185,3 +185,77 @@ func (d *db) GetUserChats(ctx context.Context, userId uint32) ([]*users.ChatInfo
 
 	return res, nil
 }
+
+func (d *db) DeleteChat(ctx context.Context, chatId uint32) error {
+	t, err := d.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
+	_, err = t.ExecContext(ctx, `delete from users_chats where chat_id = $1`, chatId)
+	if err != nil {
+		t.Rollback()
+		return err
+	}
+	_, err = t.ExecContext(ctx, `delete from messages where chat_id = $1`, chatId)
+	if err != nil {
+		t.Rollback()
+		return err
+	}
+	_, err = t.ExecContext(ctx, `delete from chats where id = $1`, chatId)
+	if err != nil {
+		t.Rollback()
+		return err
+	}
+	t.Commit()
+	return nil
+}
+
+func (d *db) AddUserToChat(ctx context.Context, username string, chatId uint32) error {
+	var id int
+	var count int
+	err := d.QueryRowContext(ctx, `select id from users where username = $1`, username).Scan(&id)
+	if err != nil {
+		return err
+	}
+	err = d.QueryRowContext(ctx, `select count(user_id) from users_chats where user_id = $1`, id).Scan(&count)
+	if err != nil {
+		return err
+	}
+	if count != 0 {
+		return apperror.ErrBadRequest
+	}
+	_, err = d.ExecContext(ctx, `insert into users_chats (user_id, chat_id) values ($1, $2)`, id, chatId)
+	return err
+}
+
+func (d *db) RemoveUserFromChat(ctx context.Context, username string, chatId uint32) error {
+	var usersCount int
+	var id int
+	var countUserInChat int
+	err := d.QueryRowContext(ctx, `select id from users where username = $1`, username).Scan(&id)
+	if err != nil || id == 0 {
+		return apperror.ErrInternalError
+	}
+	err = d.QueryRowContext(ctx, `select count(user_id) from users_chats where user_id = $1 and chat_id = $2`, id, chatId).Scan(&countUserInChat)
+	if err != nil {
+		return err
+	}
+	if countUserInChat != 1 {
+		return apperror.ErrBadRequest
+	}
+	err = d.QueryRowContext(ctx, `select count(user_id) from users_chats where chat_id = $1`, chatId).Scan(&usersCount)
+	if err != nil {
+		return err
+	}
+
+	if usersCount < 2 {
+		return apperror.ErrInternalError
+	}
+
+	if usersCount == 2 {
+		d.DeleteChat(ctx, chatId)
+	}
+
+	_, err = d.ExecContext(ctx, `delete from users_chats where user_id = $1 and chat_id = $2`, id, chatId)
+	return err
+}

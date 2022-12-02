@@ -41,12 +41,11 @@ func AuthMiddleware(h authHandler) appErrorHandler {
 		userId := claims["user_id"].(float64)
 
 		if token.Valid {
-			h(w, r, uint32(userId))
+			err = h(w, r, uint32(userId))
+			return err
 		} else {
 			return apperror.ErrUnauthorized
 		}
-
-		return nil
 	}
 }
 
@@ -61,23 +60,23 @@ func ErrorMiddleware(h appErrorHandler) http.HandlerFunc {
 					w.WriteHeader(404)
 					w.Write(apperror.ErrNotFound.Marshal())
 					return
-				}
-				if errors.Is(err, apperror.ErrBadRequest) {
+				} else if errors.Is(err, apperror.ErrBadRequest) {
 					w.WriteHeader(400)
 					w.Write(apperror.ErrBadRequest.Marshal())
 					return
-				}
-				if errors.Is(err, apperror.ErrUnauthorized) {
+				} else if errors.Is(err, apperror.ErrUnauthorized) {
 					w.WriteHeader(401)
 					w.Write(apperror.ErrBadRequest.Marshal())
 					return
-				}
-				if errors.Is(err, apperror.ErrInternalError) {
+				} else {
 					w.WriteHeader(500)
 					w.Write(apperror.ErrBadRequest.Marshal())
 					return
 				}
 			}
+			w.WriteHeader(500)
+			w.Write(apperror.ErrBadRequest.Marshal())
+			return
 		}
 	}
 }

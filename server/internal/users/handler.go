@@ -27,6 +27,9 @@ func (h *handler) Register(router *mux.Router) {
 	router.HandleFunc("/chats/create", middleware.ErrorMiddleware(middleware.AuthMiddleware(h.CreateChat))).Methods("POST")
 	router.HandleFunc("/chats/get", middleware.ErrorMiddleware(middleware.AuthMiddleware(h.GetUserChats))).Methods("GET")
 	router.HandleFunc("/users", middleware.ErrorMiddleware(middleware.AuthMiddleware(h.GetAllUsernames))).Methods("GET")
+	router.HandleFunc("/chats/{chatId}", middleware.ErrorMiddleware(middleware.AuthMiddleware(h.DeleteChat))).Methods("DELETE")
+	router.HandleFunc("/chats/{chatId}/{username}", middleware.ErrorMiddleware(middleware.AuthMiddleware(h.RemoveUser))).Methods("DELETE")
+	router.HandleFunc("/chats/{chatId}/{username}", middleware.ErrorMiddleware(middleware.AuthMiddleware(h.AddUser))).Methods("POST")
 }
 
 func (h *handler) RegisterUser(w http.ResponseWriter, r *http.Request) error {
@@ -39,6 +42,7 @@ func (h *handler) RegisterUser(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
+	w.WriteHeader(201)
 	return nil
 }
 
@@ -67,14 +71,12 @@ func (h *handler) CreateChat(w http.ResponseWriter, r *http.Request, userId uint
 	}
 
 	err = h.service.CreateChat(context.Background(), &data, userId)
+	w.WriteHeader(201)
 	return err
 }
 
 func (h *handler) GetAllUsernames(w http.ResponseWriter, r *http.Request, userId uint32) error {
 	prefix := r.URL.Query().Get("prefix")
-	if prefix == "" {
-		return apperror.ErrBadRequest
-	}
 	ur, err := h.service.GetAllUsernames(context.Background(), prefix)
 	if err != nil {
 		return apperror.ErrInternalError
@@ -96,4 +98,50 @@ func (h *handler) GetUserChats(w http.ResponseWriter, r *http.Request, userId ui
 		return err
 	}
 	return nil
+}
+
+func (h *handler) DeleteChat(w http.ResponseWriter, r *http.Request, userId uint32) error {
+	params := mux.Vars(r)
+	chatId := params["chatId"]
+	if chatId == "" {
+		return apperror.ErrBadRequest
+	}
+	err := h.service.DeleteChat(context.Background(), chatId)
+	if err != nil {
+		return err
+	}
+	w.WriteHeader(204)
+	return nil
+}
+
+func (h *handler) AddUser(w http.ResponseWriter, r *http.Request, userId uint32) error {
+	params := mux.Vars(r)
+	chatId := params["chatId"]
+	username := params["username"]
+	if username == "" || chatId == "" {
+		return apperror.ErrBadRequest
+	}
+	err := h.service.AddUser(context.Background(), chatId, username)
+	if err != nil {
+		return err
+	}
+	w.WriteHeader(200)
+	return nil
+
+}
+
+func (h *handler) RemoveUser(w http.ResponseWriter, r *http.Request, userId uint32) error {
+	params := mux.Vars(r)
+	chatId := params["chatId"]
+	username := params["username"]
+	if username == "" || chatId == "" {
+		return apperror.ErrBadRequest
+	}
+	err := h.service.RemoveUser(context.Background(), chatId, username)
+	if err != nil {
+		return err
+	}
+	w.WriteHeader(204)
+	return nil
+
 }

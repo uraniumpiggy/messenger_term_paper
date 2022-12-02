@@ -3,6 +3,8 @@ package users
 import (
 	"context"
 	"fmt"
+	"messenger/internal/apperror"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -103,4 +105,40 @@ func (s *Service) generateJWT(userId uint32) (string, error) {
 	}
 
 	return tokenString, nil
+}
+
+func (s *Service) DeleteChat(ctx context.Context, chatId string) error {
+	chId, err := strconv.ParseUint(chatId, 10, 32)
+	if err != nil {
+		return apperror.ErrBadRequest
+	}
+	if chId < 1 {
+		return apperror.ErrBadRequest
+	}
+	err = s.storage.DeleteChat(ctx, uint32(chId))
+	return err
+}
+
+func (s *Service) AddUser(ctx context.Context, chatId, username string) error {
+	chId, err := strconv.ParseUint(chatId, 10, 32)
+	if err != nil {
+		return apperror.ErrBadRequest
+	}
+	if chId < 1 {
+		return apperror.ErrBadRequest
+	}
+	err = s.storage.AddUserToChat(ctx, username, uint32(chId))
+	return err
+}
+
+func (s *Service) RemoveUser(ctx context.Context, chatId, username string) error {
+	chId, err := strconv.ParseUint(chatId, 10, 32)
+	if err != nil {
+		return apperror.ErrBadRequest
+	}
+	if chId < 1 {
+		return apperror.ErrBadRequest
+	}
+	err = s.storage.RemoveUserFromChat(ctx, username, uint32(chId))
+	return err
 }
