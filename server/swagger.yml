@@ -47,7 +47,7 @@ components:
               code:
                 type: string
                 default: "BS-000002"
-    403:
+    401:
       description: Unauthorized
       content:
         application/json:
@@ -60,7 +60,7 @@ components:
               code:
                 type: string
                 default: "BS-000003"
-    401:
+    403:
       description: Permission denied
       content:
         application/json:
@@ -344,7 +344,7 @@ paths:
       description: Добавить пользователя в чат
       responses:
         200:
-          description: Текущий баланс пользователя
+          description: OK
         403:
           $ref: '#/components/responses/403'
         400:
