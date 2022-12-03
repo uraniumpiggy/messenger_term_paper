@@ -4,6 +4,6 @@ listen:
 database:
   username: user
   password: secret
-  host: localhost
+  host: database
   port: 5432
   database: service-db
