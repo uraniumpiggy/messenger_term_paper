@@ -23,7 +23,7 @@ func NewHandler(service *Service) handlers.Handler {
 
 func (h *handler) Register(router *mux.Router) {
 	router.HandleFunc("/register", middleware.ErrorMiddleware(h.RegisterUser)).Methods("POST")
-	router.HandleFunc("/login", middleware.ErrorMiddleware(h.AuthUser)).Methods("GET")
+	router.HandleFunc("/login", middleware.ErrorMiddleware(h.AuthUser)).Methods("POST")
 	router.HandleFunc("/chats/create", middleware.ErrorMiddleware(middleware.AuthMiddleware(h.CreateChat))).Methods("POST")
 	router.HandleFunc("/chats/get", middleware.ErrorMiddleware(middleware.AuthMiddleware(h.GetUserChats))).Methods("GET")
 	router.HandleFunc("/users", middleware.ErrorMiddleware(middleware.AuthMiddleware(h.GetAllUsernames))).Methods("GET")

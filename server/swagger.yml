@@ -1,0 +1,402 @@
+openapi: 3.0.0
+info:
+  title: Мессенджер
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/
+    description: Dev server
+    
+components:
+  responses:
+    500:
+      description: Internal error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                default: "internal error"
+              code:
+                type: string
+                default: "BS-000000"
+    404:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                default: "not found"
+              code:
+                type: string
+                default: "BS-000001"
+    400:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                default: "bad request"
+              code:
+                type: string
+                default: "BS-000002"
+    403:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                default: "unauthorized"
+              code:
+                type: string
+                default: "BS-000003"
+    401:
+      description: Permission denied
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                default: "permission denied"
+              code:
+                type: string
+                default: "BS-000004"
+              
+  schemas:
+    Messege:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          example: 3344
+        chat_id:
+          type: integer
+          example: 221
+        body:
+          type: string
+          example: "Hello man what's up"
+        created_at:
+          type: string
+          example: "2022-11-30T20:51:13.679562Z"
+    UsernameResponse:
+      type: object
+      properties:
+        usernames:
+          type: array
+          items:
+            type: string
+            example: ["Alex", "Alexandrio", "Alexman"]
+    UserLoginRequest:
+      type: object
+      properties:
+        login:
+          type: string
+          example: "alex@gmail.com"
+        password:
+          type: string
+          example: "Verysecretpassword"
+    UserRegisterRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          example: "Alex"
+        login:
+          type: string
+          example: "alex@gmail.com"
+        password:
+          type: string
+          example: "Verysecretpassword"
+    CreateChatRequest:
+      type: object
+      properties:
+        chat_member_names:
+          type: array
+          minItems: 2
+          items:
+            type: string
+            example: ["John1337", "Aboba"]
+        name:
+          type: string
+          example: "Chat with Mark's friends"
+    ChatInfo:
+      type: object
+      properties:
+        chat_id:
+          type: integer
+          example: 12
+        chat_name:
+          type: string
+          example: "Chat for friends"
+        memeber_names:
+          type: array
+          items:
+            type: string
+            example: ["User 1", "User 2"]
+    UserWithToken:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          example: 18
+        username:
+          type: string
+          example: "Alex"
+        chat_ids:
+          type: array
+          items:
+            type: integer
+            example: [123,3409]
+        chat_names:
+          type: array
+          items:
+            type: string
+            example: ["Chat A", "Chat B"]
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2NzAxMzYxNzYsInVzZXJfaWQiOjN9.R0fw9GiemEtG-MF-B4SbLSIuib89yMtXLj1UOQ0qUW8"
+paths:
+  /chats/{chatId}/history:
+    parameters:
+      - in: path
+        name: chatId
+        required: true
+        schema:
+          type: integer
+      - in: header
+        required: true
+        name: Token
+        schema:
+          type: string
+    get:
+      description: Получить историю сообщений
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Messege'
+        400:
+          $ref: '#/components/responses/400'          
+        401:
+          $ref: '#/components/responses/401'
+        500:
+          $ref: '#/components/responses/500'
+      tags:
+        - Чаты
+        
+  /register:
+    post:
+      description: Регистрация в системе 
+      responses:
+        201:
+          description: Created
+        400:
+          $ref: '#/components/responses/400'
+        500:
+          $ref: '#/components/responses/500'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegisterRequest'
+      tags:
+        - Пользователи
+  /login:
+    post:
+      description: Авторизация в системе 
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserWithToken'
+        400:
+          $ref: '#/components/responses/400'          
+        404:
+          $ref: '#/components/responses/404'
+        500:
+          $ref: '#/components/responses/500'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLoginRequest'
+      tags:
+        - Пользователи
+  /chats/create:
+    description: Создать чат
+    parameters:
+      - in: header
+        required: true
+        name: Token
+        schema:
+          type: string
+    post:
+      responses:
+        201:
+          description: Created
+        400:
+          $ref: '#/components/responses/400'          
+        401:
+          $ref: '#/components/responses/401'
+        500:
+          $ref: '#/components/responses/500'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateChatRequest'
+      tags:
+        - Пользователи
+  /chats/get:
+    parameters:
+      - in: header
+        required: true
+        name: Token
+        schema:
+          type: string
+    get:
+      description: Получить текущие чаты пользователя
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChatInfo'
+        400:
+          $ref: '#/components/responses/400'          
+        401:
+          $ref: '#/components/responses/401'
+        500:
+          $ref: '#/components/responses/500'
+      tags:
+        - Пользователи
+  /chats/{chatId}:
+    parameters:
+      - in: path
+        name: chatId
+        required: true
+        schema:
+          type: integer
+      - in: header
+        required: true
+        name: Token
+        schema:
+          type: string
+    delete:
+      description: Удалить чат
+      responses:
+        204:
+          description: No content
+        403:
+          $ref: '#/components/responses/403'
+        400:
+          $ref: '#/components/responses/400'          
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+        500:
+          $ref: '#/components/responses/500'
+      tags:
+        - Пользователи
+  /chats/{chatId}/{username}:
+    parameters:
+      - in: path
+        name: chatId
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: username
+        required: true
+        schema:
+          type: string
+      - in: header
+        required: true
+        name: Token
+        schema:
+          type: string
+    post:
+      description: Добавить пользователя в чат
+      responses:
+        200:
+          description: Текущий баланс пользователя
+        403:
+          $ref: '#/components/responses/403'
+        400:
+          $ref: '#/components/responses/400'          
+        401:
+          $ref: '#/components/responses/401'
+        500:
+          $ref: '#/components/responses/500'
+      tags:
+        - Пользователи
+    delete:
+      description: Удалить пользователя из чата
+      responses:
+        204:
+          description: No content
+        403:
+          $ref: '#/components/responses/403'
+        400:
+          $ref: '#/components/responses/400'          
+        401:
+          $ref: '#/components/responses/401'
+        500:
+          $ref: '#/components/responses/500'
+      tags:
+        - Пользователи
+  /users:
+    parameters:
+      - in: header
+        required: true
+        name: Token
+        schema:
+          type: string
+    get:
+      description: Получить отчет о действиях со счетом пользователя
+      parameters:
+        - in: query
+          name: prefix
+          schema:
+            type: string
+            example: "Ale"
+          required: false
+          description: ИД пользователя
+      responses:
+        200:
+          description: Отчет о действиях со счетом пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsernameResponse'
+        401:
+          $ref: '#/components/responses/401'
+        500:
+          $ref: '#/components/responses/500'
+      tags:
+        - Пользователи
