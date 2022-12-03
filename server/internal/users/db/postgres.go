@@ -259,3 +259,15 @@ func (d *db) RemoveUserFromChat(ctx context.Context, username string, chatId uin
 	_, err = d.ExecContext(ctx, `delete from users_chats where user_id = $1 and chat_id = $2`, id, chatId)
 	return err
 }
+
+func (d *db) IsUserInChat(ctx context.Context, userId uint32, chatId uint32) (bool, error) {
+	var count int
+	err := d.QueryRowContext(ctx, `select count(user_id) from users_chats where user_id = $1 and chat_id = $2`, userId, chatId).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	if count == 0 {
+		return false, nil
+	}
+	return true, nil
+}

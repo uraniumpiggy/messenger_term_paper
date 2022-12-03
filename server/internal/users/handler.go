@@ -106,7 +106,7 @@ func (h *handler) DeleteChat(w http.ResponseWriter, r *http.Request, userId uint
 	if chatId == "" {
 		return apperror.ErrBadRequest
 	}
-	err := h.service.DeleteChat(context.Background(), chatId)
+	err := h.service.DeleteChat(context.Background(), chatId, userId)
 	if err != nil {
 		return err
 	}
@@ -121,7 +121,7 @@ func (h *handler) AddUser(w http.ResponseWriter, r *http.Request, userId uint32)
 	if username == "" || chatId == "" {
 		return apperror.ErrBadRequest
 	}
-	err := h.service.AddUser(context.Background(), chatId, username)
+	err := h.service.AddUser(context.Background(), chatId, username, userId)
 	if err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func (h *handler) RemoveUser(w http.ResponseWriter, r *http.Request, userId uint
 	if username == "" || chatId == "" {
 		return apperror.ErrBadRequest
 	}
-	err := h.service.RemoveUser(context.Background(), chatId, username)
+	err := h.service.RemoveUser(context.Background(), chatId, username, userId)
 	if err != nil {
 		return err
 	}

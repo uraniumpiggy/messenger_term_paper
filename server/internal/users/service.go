@@ -107,37 +107,58 @@ func (s *Service) generateJWT(userId uint32) (string, error) {
 	return tokenString, nil
 }
 
-func (s *Service) DeleteChat(ctx context.Context, chatId string) error {
+func (s *Service) DeleteChat(ctx context.Context, chatId string, userId uint32) error {
 	chId, err := strconv.ParseUint(chatId, 10, 32)
 	if err != nil {
 		return apperror.ErrBadRequest
 	}
 	if chId < 1 {
 		return apperror.ErrBadRequest
+	}
+	isUserInChat, err := s.storage.IsUserInChat(ctx, userId, uint32(chId))
+	if err != nil {
+		return apperror.ErrInternalError
+	}
+	if !isUserInChat {
+		return apperror.ErrPermissionDenied
 	}
 	err = s.storage.DeleteChat(ctx, uint32(chId))
 	return err
 }
 
-func (s *Service) AddUser(ctx context.Context, chatId, username string) error {
+func (s *Service) AddUser(ctx context.Context, chatId, username string, userId uint32) error {
 	chId, err := strconv.ParseUint(chatId, 10, 32)
 	if err != nil {
 		return apperror.ErrBadRequest
 	}
 	if chId < 1 {
 		return apperror.ErrBadRequest
+	}
+	isUserInChat, err := s.storage.IsUserInChat(ctx, userId, uint32(chId))
+	if err != nil {
+		return apperror.ErrInternalError
+	}
+	if !isUserInChat {
+		return apperror.ErrPermissionDenied
 	}
 	err = s.storage.AddUserToChat(ctx, username, uint32(chId))
 	return err
 }
 
-func (s *Service) RemoveUser(ctx context.Context, chatId, username string) error {
+func (s *Service) RemoveUser(ctx context.Context, chatId, username string, userId uint32) error {
 	chId, err := strconv.ParseUint(chatId, 10, 32)
 	if err != nil {
 		return apperror.ErrBadRequest
 	}
 	if chId < 1 {
 		return apperror.ErrBadRequest
+	}
+	isUserInChat, err := s.storage.IsUserInChat(ctx, userId, uint32(chId))
+	if err != nil {
+		return apperror.ErrInternalError
+	}
+	if !isUserInChat {
+		return apperror.ErrPermissionDenied
 	}
 	err = s.storage.RemoveUserFromChat(ctx, username, uint32(chId))
 	return err

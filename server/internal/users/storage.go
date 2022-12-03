@@ -14,4 +14,5 @@ type Storage interface {
 	DeleteChat(ctx context.Context, chatId uint32) error
 	AddUserToChat(ctx context.Context, username string, chatId uint32) error
 	RemoveUserFromChat(ctx context.Context, username string, chatId uint32) error
+	IsUserInChat(ctx context.Context, userId uint32, chatId uint32) (bool, error)
 }
