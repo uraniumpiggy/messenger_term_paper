@@ -14,6 +14,18 @@ func NewStorage(database *sql.DB) *db {
 	return &db{database}
 }
 
+func (d *db) IsUserInChat(ctx context.Context, userId, chatId uint32) (bool, error) {
+	var count int
+	err := d.QueryRowContext(ctx, `select count(user_id) from users_chats where user_id = $1 and chat_id = $2`, userId, chatId).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	if count == 0 {
+		return false, nil
+	}
+	return true, nil
+}
+
 func (d *db) SaveMessage(ctx context.Context, data *messages.Message) error {
 	_, err := d.ExecContext(ctx, `insert into messages (user_id, chat_id, body) values ($1, $2, $3)`, data.UserId, data.ChatId, data.Body)
 	return err

@@ -24,6 +24,13 @@ func NewService(storage Storage) *Service {
 }
 
 func (s *Service) SendMessageToChat(ctx context.Context, conn *websocket.Conn, chatId, userId uint32) error {
+	isCorrectUser, err := s.storage.IsUserInChat(ctx, userId, chatId)
+	if err != nil {
+		return apperror.ErrInternalError
+	}
+	if !isCorrectUser {
+		return apperror.ErrPermissionDenied
+	}
 	disconnect := make(chan struct{})
 	s.mutex.Lock()
 	s.connections[chatId] = append(s.connections[chatId], conn)

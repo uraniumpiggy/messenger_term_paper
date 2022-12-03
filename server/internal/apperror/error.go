@@ -5,10 +5,11 @@ import (
 )
 
 var (
-	ErrNotFound      = NewAppError(nil, "not found", "BS-000001")
-	ErrBadRequest    = NewAppError(nil, "bad request", "BS-000002")
-	ErrInternalError = NewAppError(nil, "internal error", "BS-000000")
-	ErrUnauthorized  = NewAppError(nil, "unauthorized", "BS-000003")
+	ErrNotFound         = NewAppError(nil, "not found", "BS-000001")
+	ErrBadRequest       = NewAppError(nil, "bad request", "BS-000002")
+	ErrInternalError    = NewAppError(nil, "internal error", "BS-000000")
+	ErrUnauthorized     = NewAppError(nil, "unauthorized", "BS-000003")
+	ErrPermissionDenied = NewAppError(nil, "permission denied", "BS-000004")
 )
 
 type AppError struct {

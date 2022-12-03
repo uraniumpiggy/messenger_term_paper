@@ -64,18 +64,22 @@ func ErrorMiddleware(h appErrorHandler) http.HandlerFunc {
 					w.WriteHeader(400)
 					w.Write(apperror.ErrBadRequest.Marshal())
 					return
+				} else if errors.Is(err, apperror.ErrPermissionDenied) {
+					w.WriteHeader(413)
+					w.Write(apperror.ErrPermissionDenied.Marshal())
+					return
 				} else if errors.Is(err, apperror.ErrUnauthorized) {
 					w.WriteHeader(401)
-					w.Write(apperror.ErrBadRequest.Marshal())
+					w.Write(apperror.ErrUnauthorized.Marshal())
 					return
 				} else {
 					w.WriteHeader(500)
-					w.Write(apperror.ErrBadRequest.Marshal())
+					w.Write(apperror.ErrInternalError.Marshal())
 					return
 				}
 			}
 			w.WriteHeader(500)
-			w.Write(apperror.ErrBadRequest.Marshal())
+			w.Write(apperror.ErrInternalError.Marshal())
 			return
 		}
 	}
