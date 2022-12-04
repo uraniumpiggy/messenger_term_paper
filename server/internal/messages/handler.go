@@ -21,7 +21,7 @@ func NewHandler(service *Service) handlers.Handler {
 }
 
 func (h *handler) Register(router *mux.Router) {
-	router.HandleFunc("/ws/{chatId}", middleware.ErrorMiddleware(middleware.AuthMiddleware(middleware.WsMiddleware(h.ServeChat)))).Methods("POST")
+	router.HandleFunc("/ws/{chatId}", middleware.ErrorMiddleware(middleware.AuthMiddleware(middleware.WsMiddleware(h.ServeChat)))).Methods("GET")
 	router.HandleFunc("/chats/{chatId}/history", middleware.ErrorMiddleware(middleware.AuthMiddleware(h.GetChatHistory))).Methods("GET")
 }
 

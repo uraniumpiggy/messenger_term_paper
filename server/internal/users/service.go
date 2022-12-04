@@ -68,8 +68,8 @@ func (s *Service) AuthUser(ctx context.Context, data *UserLoginRequest) (*UserWi
 }
 
 func (s *Service) CreateChat(ctx context.Context, data *CreateChatRequest, userId uint32) error {
-	if len(data.ChatMemberNames) < 2 {
-		return fmt.Errorf("Chat must contain at least two members")
+	if len(data.ChatMemberNames) == 0 {
+		return apperror.ErrBadRequest
 	}
 	err := s.storage.CreateChat(ctx, data, userId)
 	return err

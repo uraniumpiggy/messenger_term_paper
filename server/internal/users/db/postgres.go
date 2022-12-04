@@ -106,7 +106,9 @@ func (d *db) CreateChat(ctx context.Context, data *users.CreateChatRequest, user
 		}
 		ids = append(ids, item)
 	}
-
+	if len(ids) != len(data.ChatMemberNames) {
+		return apperror.ErrBadRequest
+	}
 	t, err := d.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return err
@@ -116,7 +118,7 @@ func (d *db) CreateChat(ctx context.Context, data *users.CreateChatRequest, user
 	err = t.QueryRowContext(ctx, `insert into chats (chat_name) values ($1) returning id`, data.ChatName).Scan(&chatId)
 	if err != nil {
 		t.Rollback()
-		return fmt.Errorf("Error")
+		return err
 	}
 
 	var buffer bytes.Buffer
@@ -125,11 +127,10 @@ func (d *db) CreateChat(ctx context.Context, data *users.CreateChatRequest, user
 		buffer.WriteString(fmt.Sprintf("(%d, %d),", val, chatId))
 	}
 	buffer.WriteString(fmt.Sprintf("(%d, %d)", userId, chatId))
-
 	_, err = t.ExecContext(ctx, buffer.String())
 	if err != nil {
 		t.Rollback()
-		return fmt.Errorf("Error")
+		return err
 	}
 
 	t.Commit()
@@ -221,7 +222,7 @@ func (d *db) AddUserToChat(ctx context.Context, username string, chatId uint32) 
 	if err != nil {
 		return err
 	}
-	if count != 0 {
+	if count == 0 {
 		return apperror.ErrBadRequest
 	}
 	_, err = d.ExecContext(ctx, `insert into users_chats (user_id, chat_id) values ($1, $2)`, id, chatId)

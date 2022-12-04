@@ -72,7 +72,7 @@ func ErrorMiddleware(h appErrorHandler) http.HandlerFunc {
 					w.WriteHeader(401)
 					w.Write(apperror.ErrUnauthorized.Marshal())
 					return
-				} else {
+				} else if errors.Is(err, apperror.ErrInternalError) {
 					w.WriteHeader(500)
 					w.Write(apperror.ErrInternalError.Marshal())
 					return

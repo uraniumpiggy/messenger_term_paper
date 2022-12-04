@@ -71,8 +71,11 @@ func (h *handler) CreateChat(w http.ResponseWriter, r *http.Request, userId uint
 	}
 
 	err = h.service.CreateChat(context.Background(), &data, userId)
+	if err != nil {
+		return err
+	}
 	w.WriteHeader(201)
-	return err
+	return nil
 }
 
 func (h *handler) GetAllUsernames(w http.ResponseWriter, r *http.Request, userId uint32) error {
